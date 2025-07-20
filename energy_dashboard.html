@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Energy Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #1d4ed8 100%);
+            min-height: 100vh;
+            color: white;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+        }
+        
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .config-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+        
+        .token-input {
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 14px;
+            width: 300px;
+            margin-right: 10px;
+        }
+        
+        .token-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .connect-btn {
+            padding: 12px 24px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .connect-btn:hover {
+            background: #2563eb;
+        }
+        
+        .status {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #86efac;
+        }
+        
+        .status.error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+        }
+        
+        .weather-bar {
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 25px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .status-text {
+            color: #10b981;
+            font-weight: 500;
+        }
+        
+        .power-section {
+            display: none;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 40px;
+            color: white;
+        }
+        
+        .flow-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+            grid-template-rows: auto 60px auto 60px auto;
+            gap: 30px;
+            max-width: 1000px;
+            margin: 0 auto;
+            align-items: center;
+            justify-items: center;
+        }
+        
+        .panel-est { grid-column: 1; grid-row: 1; }
+        .panel-sud { grid-column: 3; grid-row: 1; }
+        .panel-ovest { grid-column: 5; grid-row: 1; }
+        
+        .arrow-down-1 { grid-column: 1; grid-row: 2; }
+        .arrow-down-2 { grid-column: 3; grid-row: 2; }
+        .arrow-down-3 { grid-column: 5; grid-row: 2; }
+        
+        .battery { grid-column: 1; grid-row: 3; }
+        .inverter { grid-column: 3; grid-row: 3; }
+        .enel { grid-column: 5; grid-row: 3; }
+        
+        .arrow-down-4 { grid-column: 1; grid-row: 4; }
+        .arrow-down-5 { grid-column: 2; grid-row: 4; }
+        .arrow-down-6 { grid-column: 3; grid-row: 4; }
+        .arrow-down-7 { grid-column: 4; grid-row: 4; }
+        .arrow-down-8 { grid-column: 5; grid-row: 4; }
+        
+        .piano-terra { grid-column: 1; grid-row: 5; }
+        .primo-piano { grid-column: 2; grid-row: 5; }
+        .mansarda { grid-column: 3; grid-row: 5; }
+        .auto { grid-column: 4; grid-row: 5; }
+        .pdc { grid-column: 5; grid-row: 5; }
+        
+        .power-item {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            min-width: 120px;
+        }
+        
+        .power-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            color: white;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .power-icon.panel {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+        
+        .power-icon.panel::before {
+            content: "🔹🔹🔹\A🔹🔹🔹\A🔹🔹🔹";
+            white-space: pre;
+            font-size: 16px;
+            line-height: 1.2;
+        }
+        
+        .power-icon.inverter {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            width: 100px;
+            height: 100px;
+        }
+        
+        .power-icon.inverter::before {
+            content: "⚡";
+            font-size: 40px;
+        }
+        
+        .power-icon.battery {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+        
+        .power-icon.battery::before {
+            content: "🔋";
+            font-size: 32px;
+        }
+        
+        .power-icon.enel {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+        
+        .power-icon.enel::before {
+            content: "🏭";
+            font-size: 32px;
+        }
+        
+        .power-icon.house {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+        
+        .power-icon.house::before {
+            content: "🏠";
+            font-size: 32px;
+        }
+        
+        .power-icon.auto {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        }
+        
+        .power-icon.auto::before {
+            content: "🚗";
+            font-size: 32px;
+        }
+        
+        .power-icon.pdc {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+        }
+        
+        .power-icon.pdc::before {
+            content: "❄️";
+            font-size: 32px;
+        }
+        
+        .power-value {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .power-label {
+            font-size: 12px;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+        
+        .arrow-down {
+            width: 6px;
+            height: 40px;
+            background: linear-gradient(180deg, #ef4444, #dc2626);
+            position: relative;
+            margin: 0 auto;
+        }
+        
+        .arrow-down::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: -6px;
+            width: 0;
+            height: 0;
+            border-left: 9px solid transparent;
+            border-right: 9px solid transparent;
+            border-top: 15px solid #ef4444;
+        }
+        
+        .arrow-green {
+            background: linear-gradient(180deg, #10b981, #059669);
+        }
+        
+        .arrow-green::after {
+            border-top-color: #10b981;
+        }
+        
+        .summary-text {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 18px;
+            padding: 20px;
+            background: rgba(16, 185, 129, 0.2);
+            border-radius: 15px;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .energy-section {
+            display: none;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+        
+        .period-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .period-tab {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .period-tab.active {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .energy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+        
+        .energy-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+        
+        .energy-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+        
+        .energy-value {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .tabs {
+            display: none;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+        
+        @media (max-width: 768px) {
+            .flow-layout {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto;
+                gap: 20px;
+            }
+            
+            .panel-est, .panel-sud, .panel-ovest,
+            .battery, .inverter, .enel,
+            .piano-terra, .primo-piano, .mansarda, .auto, .pdc {
+                grid-column: 1;
+                grid-row: auto;
+            }
+            
+            .arrow-down { display: none; }
+            
+            .token-input {
+                width: 250px;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">solar edge</div>
+            <div style="opacity: 0.8;">Dashboard Energetica in Tempo Reale</div>
+        </div>
+        
+        <div class="config-panel" id="config-panel">
+            <h3 style="margin-bottom: 20px;">Connessione Home Assistant</h3>
+            <input type="password" id="token" class="token-input" placeholder="Inserisci il tuo token di accesso">
+            <button class="connect-btn" onclick="connectHA()">Connetti</button>
+            <div id="status"></div>
+        </div>
+        
+        <div class="weather-bar" id="weather-bar">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div>🌤️ 23°C</div>
+                <div class="status-text">● Sistema attivo</div>
+            </div>
+            <div>Aggiornato: <span id="lastUpdate">--:--</span></div>
+        </div>
+        
+        <div class="tabs" id="tabs">
+            <div class="tab active" onclick="switchTab('power')">Flusso di Potenza</div>
+            <div class="tab" onclick="switchTab('energy')">Energie Cumulative</div>
+        </div>
+        
+        <div class="power-section" id="power-section">
+            <div class="section-title">⚡ Flusso di Potenza</div>
+            
+            <div class="flow-layout">
+                <!-- PANNELLI SOLARI -->
+                <div class="power-item panel-est">
+                    <div class="power-icon panel"></div>
+                    <div class="power-value" id="l1-power">-- kW</div>
+                    <div class="power-label">EST</div>
+                </div>
+                
+                <div class="power-item panel-sud">
+                    <div class="power-icon panel"></div>
+                    <div class="power-value" id="l3-power">-- kW</div>
+                    <div class="power-label">SUD</div>
+                </div>
+                
+                <div class="power-item panel-ovest">
+                    <div class="power-icon panel"></div>
+                    <div class="power-value" id="l2-power">-- kW</div>
+                    <div class="power-label">OVEST</div>
+                </div>
+                
+                <!-- FRECCE VERSO INVERTER -->
+                <div class="arrow-down-1"><div class="arrow-down"></div></div>
+                <div class="arrow-down-2"><div class="arrow-down"></div></div>
+                <div class="arrow-down-3"><div class="arrow-down"></div></div>
+                
+                <!-- CENTRO -->
+                <div class="power-item battery">
+                    <div class="power-icon battery"></div>
+                    <div class="power-value" id="battery-level">--%</div>
+                    <div class="power-label" id="battery-power">-- kW</div>
+                </div>
+                
+                <div class="power-item inverter">
+                    <div class="power-icon inverter"></div>
+                    <div class="power-value" id="total-solar">-- kW</div>
+                    <div class="power-label">INVERTER</div>
+                </div>
+                
+                <div class="power-item enel">
+                    <div class="power-icon enel"></div>
+                    <div class="power-value" id="grid-power">-- kW</div>
+                    <div class="power-label">ENEL</div>
+                </div>
+                
+                <!-- FRECCE VERSO CONSUMI -->
+                <div class="arrow-down-4"><div class="arrow-down arrow-green"></div></div>
+                <div class="arrow-down-5"><div class="arrow-down arrow-green"></div></div>
+                <div class="arrow-down-6"><div class="arrow-down arrow-green"></div></div>
+                <div class="arrow-down-7"><div class="arrow-down arrow-green"></div></div>
+                <div class="arrow-down-8"><div class="arrow-down arrow-green"></div></div>
+                
+                <!-- CONSUMI -->
+                <div class="power-item piano-terra">
+                    <div class="power-icon house"></div>
+                    <div class="power-value" id="piano-terra-power">-- kW</div>
+                    <div class="power-label">Piano Terra</div>
+                </div>
+                
+                <div class="power-item primo-piano">
+                    <div class="power-icon house"></div>
+                    <div class="power-value" id="primo-piano-power">-- kW</div>
+                    <div class="power-label">Primo Piano</div>
+                </div>
+                
+                <div class="power-item mansarda">
+                    <div class="power-icon house"></div>
+                    <div class="power-value" id="mansarda-power">-- kW</div>
+                    <div class="power-label">Mansarda</div>
+                </div>
+                
+                <div class="power-item auto">
+                    <div class="power-icon auto"></div>
+                    <div class="power-value" id="tesla-power">-- kW</div>
+                    <div class="power-label">Tesla</div>
+                </div>
+                
+                <div class="power-item pdc">
+                    <div class="power-icon pdc"></div>
+                    <div class="power-value" id="pdc-power">-- kW</div>
+                    <div class="power-label">PDC</div>
+                </div>
+            </div>
+            
+            <div class="summary-text" id="summary">
+                Connessione in corso...
+            </div>
+        </div>
+        
+        <div class="energy-section" id="energy-section">
+            <div class="section-title">📊 Energie Cumulative</div>
+            
+            <div class="period-tabs">
+                <div class="period-tab active" onclick="switchPeriod('day')">Oggi</div>
+                <div class="period-tab" onclick="switchPeriod('week')">Settimana</div>
+                <div class="period-tab" onclick="switchPeriod('month')">Mese</div>
+                <div class="period-tab" onclick="switchPeriod('year')">Anno</div>
+            </div>
+            
+            <div class="energy-grid">
+                <div class="energy-card">
+                    <div class="energy-title">☀️ Produzione FV</div>
+                    <div class="energy-value" id="total-production">-- kWh</div>
+                </div>
+                
+                <div class="energy-card">
+                    <div class="energy-title">🏠 Consumi Casa</div>
+                    <div class="energy-value" id="total-consumption">-- kWh</div>
+                </div>
+                
+                <div class="energy-card">
+                    <div class="energy-title">🚗 Tesla</div>
+                    <div class="energy-value" id="tesla-energy">-- kWh</div>
+                </div>
+                
+                <div class="energy-card">
+                    <div class="energy-title">🔋 Accumulo</div>
+                    <div class="energy-value" id="battery-energy">-- kWh</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const HA_URL = 'https://TUO_URL.ui.nabu.casa';
+        let haToken = '';
+        let isConnected = false;
+        let refreshInterval;
+
+        // Mappatura sensori
+        const SENSORS = {
+            l1_power: 'sensor.envoy_122316023075_current_power_production_l1',
+            l2_power: 'sensor.envoy_122316023075_current_power_production_l2', 
+            l3_power: 'sensor.solaredge_energia_solare',
+            total_solar: 'sensor.potenza_totale_pannelli_solari_helper',
+            battery_level: 'sensor.solaredge_livello_di_stoccaggio',
+            battery_power: 'sensor.solaredge_potenza_immagazzinata',
+            grid_power: 'sensor.prelievo_scambio_con_grid',
+            tesla_power: 'sensor.wallbox_potenza_totale_3fasi',
+            piano_terra: 'sensor.shellyem3_485519dc8109_channel_a_power',
+            primo_piano: 'sensor.shellyem3_485519dc8109_channel_b_power',
+            mansarda: 'sensor.shellyem3_485519dc8109_channel_c_power',
+            pdc: 'sensor.shellyem_a4e57cba9452_channel_1_power',
+            clima: 'sensor.shellyem3_08f9e05151c8_channel_b_power',
+            lavanderia: 'sensor.shellyem_c45bbee1c642_channel_2_power',
+            garage: 'sensor.shellyem3_c8c9a315c762_channel_b_power'
+        };
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+
+        async function connectHA() {
+            haToken = document.getElementById('token').value.trim();
+            
+            if (!haToken) {
+                showStatus('Inserisci il token di accesso', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${HA_URL}/api/states`, {
+                    headers: {
+                        'Authorization': `Bearer ${haToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Errore ${response.status}: Verifica token e configurazione CORS`);
+                }
+                
+                const data = await response.json();
+                isConnected = true;
+                showStatus(`✅ Connesso! ${data.length} sensori disponibili`, 'success');
+                
+                // Mostra dashboard
+                document.getElementById('config-panel').style.display = 'none';
+                document.getElementById('weather-bar').style.display = 'flex';
+                document.getElementById('tabs').style.display = 'flex';
+                document.getElementById('power-section').style.display = 'block';
+                document.getElementById('energy-section').style.display = 'block';
+                
+                // Avvia aggiornamento
+                refreshData();
+                refreshInterval = setInterval(refreshData, 10000);
+                
+            } catch (error) {
+                showStatus(`Errore: ${error.message}`, 'error');
+                isConnected = false;
+            }
+        }
+
+        async function getEntityState(entityId) {
+            try {
+                const response = await fetch(`${HA_URL}/api/states/${entityId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${haToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    return parseFloat(data.state) || 0;
+                }
+            } catch (error) {
+                console.warn(`Errore leggendo ${entityId}:`, error);
+            }
+            return 0;
+        }
+
+        async function refreshData() {
+            if (!isConnected) return;
+            
+            try {
+                // Lettura sensori
+                const l1 = await getEntityState(SENSORS.l1_power);
+                const l2 = await getEntityState(SENSORS.l2_power);
+                const l3 = await getEntityState(SENSORS.l3_power);
+                const totalSolar = await getEntityState(SENSORS.total_solar);
+                const batteryLevel = await getEntityState(SENSORS.battery_level);
+                const batteryPower = await getEntityState(SENSORS.battery_power);
+                const gridPower = await getEntityState(SENSORS.grid_power);
+                const teslaPower = await getEntityState(SENSORS.tesla_power);
+                const pianoTerra = await getEntityState(SENSORS.piano_terra);
+                const primoPiano = await getEntityState(SENSORS.primo_piano);
+                const mansarda = await getEntityState(SENSORS.mansarda);
+                const pdc = await getEntityState(SENSORS.pdc);
+                
+                // Aggiorna interfaccia
+                document.getElementById('l1-power').textContent = `${(l1/1000).toFixed(2)} kW`;
+                document.getElementById('l2-power').textContent = `${(l2/1000).toFixed(2)} kW`;
+                document.getElementById('l3-power').textContent = `${(l3/1000).toFixed(2)} kW`;
+                document.getElementById('total-solar').textContent = `${(totalSolar/1000).toFixed(2)} kW`;
+                document.getElementById('battery-level').textContent = `${batteryLevel.toFixed(0)}%`;
+                document.getElementById('battery-power').textContent = `${(batteryPower/1000).toFixed(2)} kW`;
+                document.getElementById('grid-power').textContent = `${(gridPower/1000).toFixed(2)} kW`;
+                document.getElementById('tesla-power').textContent = `${(teslaPower/1000).toFixed(2)} kW`;
+                document.getElementById('piano-terra-power').textContent = `${(pianoTerra/1000).toFixed(2)} kW`;
+                document.getElementById('primo-piano-power').textContent = `${(primoPiano/1000).toFixed(2)} kW`;
+                document.getElementById('mansarda-power').textContent = `${(mansarda/1000).toFixed(2)} kW`;
+                document.getElementById('pdc-power').textContent = `${(pdc/1000).toFixed(2)} kW`;
+                
+                // Summary
+                const totalConsumi = pianoTerra + primoPiano + mansarda + teslaPower + pdc;
+                const autoconsumo = Math.min(totalSolar, totalConsumi);
+                const percentualeAutoconsumo = totalSolar > 0 ? ((autoconsumo / totalConsumi) * 100) : 0;
+                
+                document.getElementById('summary').innerHTML = 
+                    `<strong>Autoconsumo:</strong> ${percentualeAutoconsumo.toFixed(0)}% - 
+                     <strong>Produzione:</strong> ${(totalSolar/1000).toFixed(2)} kW - 
+                     <strong>Consumi:</strong> ${(totalConsumi/1000).toFixed(2)} kW`;
+                
+                updateTime();
+                
+            } catch (error) {
+                console.error('Errore aggiornamento:', error);
+            }
+        }
+
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('lastUpdate').textContent = now.toLocaleTimeString('it-IT', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (tab === 'power') {
+                document.getElementById('power-section').style.display = 'block';
+                document.getElementById('energy-section').style.display = 'none';
+            } else {
+                document.getElementById('power-section').style.display = 'none';
+                document.getElementById('energy-section').style.display = 'block';
+            }
+        }
+
+        function switchPeriod(period) {
+            document.querySelectorAll('.period-tab').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // TODO: Implementare energie cumulative per periodo
+            console.log('Periodo selezionato:', period);
+        }
+
+        // Enter per connettere
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('token').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') connectHA();
+            });
+        });
+    </script>
+</body>
+</html>
